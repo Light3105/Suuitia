@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>数1a 解法・公式検索ツール</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom styles for Inter font and general body styling */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8; /* Light blue-gray background */
+            display: flex;
+            justify-content: center;
+            align-items: flex-start; /* Align items to the top for better scrollability */
+            min-height: 100vh;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .container {
+            max-width: 800px;
+            width: 100%;
+            background-color: #ffffff;
+            border-radius: 1rem; /* Rounded corners */
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1); /* Soft shadow */
+            padding: 2.5rem;
+            box-sizing: border-box;
+        }
+        input[type="text"] {
+            border: 2px solid #cbd5e1; /* Light gray border */
+            border-radius: 0.75rem; /* Rounded corners */
+            padding: 0.75rem 1rem;
+            width: 100%;
+            font-size: 1.125rem;
+            outline: none;
+            transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+        input[type="text"]:focus {
+            border-color: #6366f1; /* Indigo on focus */
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2); /* Light indigo focus ring */
+        }
+        .result-card {
+            background-color: #f8fafc; /* Lighter background for cards */
+            border-radius: 0.75rem;
+            padding: 1.25rem;
+            margin-bottom: 1rem;
+            border: 1px solid #e2e8f0; /* Subtle border */
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+        .result-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+        }
+        .result-card h3 {
+            color: #4338ca; /* Darker indigo for headings */
+            font-size: 1.375rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+        .result-card p {
+            color: #475569; /* Slate gray for text */
+            line-height: 1.6;
+            margin-bottom: 0.5rem;
+        }
+        .result-card pre {
+            background-color: #e0e7ff; /* Lightest indigo for code/formulas */
+            color: #312e81; /* Dark indigo for code text */
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            overflow-x: auto;
+            font-size: 0.95rem;
+            white-space: pre-wrap; /* Wrap long lines */
+            word-break: break-all; /* Break words if necessary */
+        }
+        .no-results {
+            color: #64748b; /* Gray for no results message */
+            text-align: center;
+            padding: 2rem;
+            font-size: 1.125rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-4xl font-extrabold text-center text-indigo-800 mb-8">数1a 解法・公式検索</h1>
+        <div class="mb-8">
+            <input type="text" id="searchInput" placeholder="キーワードを入力してください (例: 2次関数, 正弦定理, 因数分解)">
+        </div>
+        <div id="resultsContainer" class="space-y-4">
+            <!-- Search results will be displayed here -->
+        </div>
+    </div>
+
+    <script>
+        // Data for 数1a formulas and solutions
+        const mathData = [
+            {
+                title: "展開の公式 (乗法公式)",
+                keywords: ["展開", "乗法公式", "数と式"],
+                description: "多項式の積を計算するための基本的な公式です。",
+                formula: `$(a+b)^2 = a^2 + 2ab + b^2$
+$(a-b)^2 = a^2 - 2ab + b^2$
+$(a+b)(a-b) = a^2 - b^2$
+$(x+a)(x+b) = x^2 + (a+b)x + ab$
+$(ax+b)(cx+d) = acx^2 + (ad+bc)x + bd$`
+            },
+            {
+                title: "因数分解の公式",
+                keywords: ["因数分解", "数と式"],
+                description: "多項式を因数の積の形に変形するための公式です。",
+                formula: `$a^2 + 2ab + b^2 = (a+b)^2$
+$a^2 - 2ab + b^2 = (a-b)^2$
+$a^2 - b^2 = (a+b)(a-b)$
+$x^2 + (a+b)x + ab = (x+a)(x+b)$
+$acx^2 + (ad+bc)x + bd = (ax+b)(cx+d)$`
+            },
+            {
+                title: "平方根の計算",
+                keywords: ["平方根", "根号", "数と式"],
+                description: "平方根を含む式の計算方法です。",
+                formula: `$\\sqrt{a}\\sqrt{b} = \\sqrt{ab}$
+$\\frac{\\sqrt{a}}{\\sqrt{b}} = \\sqrt{\\frac{a}{b}}$
+$a\\sqrt{c} + b\\sqrt{c} = (a+b)\\sqrt{c}$
+分母の有理化: $\\frac{1}{\\sqrt{a}} = \\frac{\\sqrt{a}}{a}$`
+            },
+            {
+                title: "2次関数のグラフ (標準形)",
+                keywords: ["2次関数", "グラフ", "放物線"],
+                description: "2次関数 $y=ax^2+bx+c$ のグラフの頂点と軸を求めるための標準形です。",
+                formula: `$y = a(x-p)^2 + q$
+頂点: $(p, q)$
+軸: $x=p$`
+            },
+            {
+                title: "2次方程式の解の公式",
+                keywords: ["2次方程式", "解の公式"],
+                description: "2次方程式 $ax^2+bx+c=0$ の解を求める公式です。",
+                formula: `$x = \\frac{-b \\pm \\sqrt{b^2-4ac}}{2a}$`
+            },
+            {
+                title: "判別式",
+                keywords: ["判別式", "2次方程式", "実数解"],
+                description: "2次方程式 $ax^2+bx+c=0$ の実数解の個数を判別するために使われます。",
+                formula: `$D = b^2 - 4ac$
+$D > 0$: 異なる2つの実数解
+$D = 0$: 重解 (1つの実数解)
+$D < 0$: 実数解なし`
+            },
+            {
+                title: "三角比の定義",
+                keywords: ["三角比", "sin", "cos", "tan", "直角三角形"],
+                description: "直角三角形における鋭角の三角比の定義です。",
+                formula: `$\\sin\\theta = \\frac{対辺}{斜辺}$
+$\\cos\\theta = \\frac{隣辺}{斜辺}$
+$\\tan\\theta = \\frac{対辺}{隣辺}$`
+            },
+            {
+                title: "三角比の相互関係",
+                keywords: ["三角比", "相互関係", "sin", "cos", "tan"],
+                description: "三角比の間に成り立つ基本的な関係式です。",
+                formula: `$\\tan\\theta = \\frac{\\sin\\theta}{\\cos\\theta}$
+$\\sin^2\\theta + \\cos^2\\theta = 1$
+$1 + \\tan^2\\theta = \\frac{1}{\\cos^2\\theta}$`
+            },
+            {
+                title: "正弦定理",
+                keywords: ["正弦定理", "図形と計量", "三角形"],
+                description: "三角形の外接円の半径 $R$ と辺の長さ、対角の関係を表す定理です。",
+                formula: `$\\frac{a}{\\sin A} = \\frac{b}{\\sin B} = \\frac{c}{\\sin C} = 2R$`
+            },
+            {
+                title: "余弦定理",
+                keywords: ["余弦定理", "図形と計量", "三角形"],
+                description: "三角形の3辺の長さと1つの角の関係を表す定理です。",
+                formula: `$a^2 = b^2 + c^2 - 2bc\\cos A$
+$b^2 = c^2 + a^2 - 2ca\\cos B$
+$c^2 = a^2 + b^2 - 2ab\\cos C$`
+            },
+            {
+                title: "三角形の面積公式",
+                keywords: ["三角形", "面積", "図形と計量"],
+                description: "2辺とその間の角が分かっている場合の三角形の面積を求める公式です。",
+                formula: `$S = \\frac{1}{2}bc\\sin A = \\frac{1}{2}ca\\sin B = \\frac{1}{2}ab\\sin C$`
+            },
+            {
+                title: "順列 (Permutation)",
+                keywords: ["順列", "場合の数", "P"],
+                description: "異なるn個のものからr個を選んで並べる場合の数です。",
+                formula: `$_nP_r = \\frac{n!}{(n-r)!}$`
+            },
+            {
+                title: "組合せ (Combination)",
+                keywords: ["組合せ", "場合の数", "C"],
+                description: "異なるn個のものからr個を選ぶ場合の数です。",
+                formula: `$_nC_r = \\frac{n!}{r!(n-r)!}$`
+            },
+            {
+                title: "確率の基本",
+                keywords: ["確率", "場合の数"],
+                description: "事象Aが起こる確率の定義です。",
+                formula: `$P(A) = \\frac{(事象Aが起こる場合の数)}{(起こりうるすべての場合の数)}$`
+            },
+            {
+                title: "独立試行の確率",
+                keywords: ["独立試行", "確率"],
+                description: "互いに影響しない試行AとBが両方起こる確率です。",
+                formula: `$P(A \\cap B) = P(A) \\times P(B)$`
+            },
+            {
+                title: "集合の記号と演算",
+                keywords: ["集合", "和集合", "共通部分", "補集合"],
+                description: "集合の基本的な記号と演算です。",
+                formula: `$\\cup$: 和集合 (OR)
+$\\cap$: 共通部分 (AND)
+$\\subset$: 部分集合
+$\\in$: 要素
+$\\bar{A}$ または $A^c$: 補集合`
+            },
+            {
+                title: "命題と条件",
+                keywords: ["命題", "条件", "必要条件", "十分条件"],
+                description: "数学における命題の真偽と条件の関係です。",
+                formula: `"p $\\Rightarrow$ q" (pならばq)
+pはqであるための十分条件
+qはpであるための必要条件
+"p $\\Leftrightarrow$ q" (pとqは同値)
+pはqであるための必要十分条件`
+            },
+            {
+                title: "データの分析 (平均値、分散、標準偏差)",
+                keywords: ["データ", "平均値", "分散", "標準偏差", "データの分析"],
+                description: "データのばらつきを表す指標です。",
+                formula: `平均値 $\\bar{x} = \\frac{1}{n}\\sum_{i=1}^{n} x_i$
+分散 $s^2 = \\frac{1}{n}\\sum_{i=1}^{n} (x_i - \\bar{x})^2$
+標準偏差 $s = \\sqrt{s^2}$`
+            },
+            {
+                title: "相関係数",
+                keywords: ["相関係数", "データ", "散布図"],
+                description: "2つのデータの関係の強さと方向を示す指標です。",
+                formula: `$r = \\frac{共分散}{\\text{標準偏差の積}} = \\frac{s_{xy}}{s_x s_y}$
+$-1 \\le r \\le 1$`
+            }
+        ];
+
+        const searchInput = document.getElementById('searchInput');
+        const resultsContainer = document.getElementById('resultsContainer');
+
+        // Function to render results
+        function renderResults(query = '') {
+            resultsContainer.innerHTML = ''; // Clear previous results
+            const lowerCaseQuery = query.toLowerCase().trim();
+
+            const filteredData = mathData.filter(item => {
+                // Check if the query matches title, description, or any keyword
+                return item.title.toLowerCase().includes(lowerCaseQuery) ||
+                       item.description.toLowerCase().includes(lowerCaseQuery) ||
+                       item.keywords.some(keyword => keyword.toLowerCase().includes(lowerCaseQuery));
+            });
+
+            if (filteredData.length === 0 && lowerCaseQuery !== '') {
+                resultsContainer.innerHTML = `
+                    <div class="no-results">
+                        <p>「${query}」に一致する結果は見つかりませんでした。</p>
+                        <p>別のキーワードでお試しください。</p>
+                    </div>
+                `;
+            } else {
+                filteredData.forEach(item => {
+                    const card = document.createElement('div');
+                    card.className = 'result-card';
+                    card.innerHTML = `
+                        <h3>${item.title}</h3>
+                        <p>${item.description}</p>
+                        <pre>${item.formula}</pre>
+                    `;
+                    resultsContainer.appendChild(card);
+                });
+            }
+
+            // Render MathJax after results are displayed
+            if (typeof MathJax !== 'undefined') {
+                MathJax.typesetPromise();
+            }
+        }
+
+        // Event listener for search input
+        searchInput.addEventListener('input', (event) => {
+            renderResults(event.target.value);
+        });
+
+        // Initial render when the page loads (show all or a default set)
+        document.addEventListener('DOMContentLoaded', () => {
+            renderResults(''); // Show all items initially
+        });
+
+        // Load MathJax for LaTeX rendering
+        // MathJax configuration
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']]
+            },
+            svg: {
+                fontCache: 'global'
+            }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</body>
+</html>
